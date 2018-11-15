@@ -1,0 +1,384 @@
+
+<p id="demo">
+
+
+</p>
+
+<canvas id="ctx" width="1300"  height="580" ></canvas>
+<a href="particle.html" id="playagain"><img src="playagain.png"></a>
+
+<style>
+#ctx
+{
+	border:1px solid black;
+	border-radius:0px;
+}
+#ctx:hover
+{
+   width:101%px;
+   height:101%px;
+   box-shadow:1px 1px 30px black,-1px -1px 30px black;
+   cursor:none;
+}
+#playagain 
+{
+    display:none;
+    position: relative;
+    top:-180px;
+    left:630px;
+    width:5px;
+    height:5px;   
+}
+a
+{
+   text-decoration:none ;
+}
+
+</style>
+<script>
+const FPS = 30; 
+const FRICTION = 0.3; 
+const p_SIZE = 30; 
+const p_THRUST = 5; 
+
+
+var r=0;
+var score=0;
+var framecount=0;
+var framecounte2=0;
+var enemydestroyed=0;
+var rotateangle=0;
+const TURN_SPEED = 360;
+var ctx=document.getElementById('ctx').getContext('2d');
+ctx.font="40px Georgia";
+ctx.fillStyle="white";
+var h=650;
+var w=1300;
+var starttime=Date.now();
+var e=0;
+var meteor=0;
+
+var pimage=new Image();
+pimage.src="rocket1.png";
+
+var asteroid1=new Image();
+asteroid1.src="metr.png";   
+    
+var p={
+ 		x:650,
+ 		speedx:30,
+ 		y:300,
+ 		speedy:5,
+ 		name:'Player1',
+ 		lives:10,
+ 		height:120,
+ 		width:150,
+ 		r: p_SIZE / 2,
+ 		a: 90 / 180 * Math.PI,
+ 		rot: 0,
+};
+       
+drawplayer=function(p)
+{
+	ctx.save();
+	ctx.drawImage(pimage,p.x,p.y,150,120);
+	ctx.restore();
+	ctx.fillStyle="white";	 
+}
+
+document.addEventListener("keydown", keyDown);
+
+function keyDown(/** @type {keyboardEvent} */ ev) 
+{
+            
+			if (p.x < 0 ) 
+			{
+                p.x = 0;
+            } 
+            else if (p.x > 1300) 
+            {
+                p.x = 1300 ;
+            }
+            if (p.y < 0) 
+            {
+                p.y = 0;
+            } 
+            else if (p.y > 650) 
+            {
+                p.y = 650;
+            }
+
+
+            switch(ev.keyCode) 
+            {
+                case 37: 
+                    p.x-=p.speedx;
+                    break;
+                case 38: 
+                    p.y-=10*p.speedy;
+                    break;
+                case 39: 
+                    p.x+=p.speedx;
+                    break;
+                case 40: 
+                    p.y+=10*p.speedy;
+                    break;
+                case 32:
+                	createbullet();
+                	break;
+            }
+}
+
+
+var enemyList={};
+enemy=function(id,x1,speedx,y1,speedy,height,width,radius)
+{
+	var e3={
+				x:x1,
+				speedx:speedx,
+				y:y1,
+				speedy:speedy,
+				name:'meteor',
+				id:id,
+				height:height,
+				width:width,
+				radius:radius,
+			};
+	enemyList[id]=e3;
+}
+
+
+
+
+createmeteor=function()
+{
+	var x=Math.random()*w;
+	var speedx=Math.random()*10;
+	var y=Math.random()*h;
+	var speedy=Math.random()*15;
+	var name=Math.random();
+	var id=Math.random();
+	var height=70;
+	var width=70;
+	var radius=Math.random()*20+20;
+	enemy(id,x,speedx,y,speedy,height,width,radius);
+}
+ drawmeteor=function(p)
+{
+	ctx.fillStyle="white";
+ 	ctx.strokeStyle="white";
+ 	ctx.beginPath();
+	ctx.drawImage(asteroid1,p.x-20,p.y-20,2*p.radius,2*p.radius);
+ 	ctx.stroke();
+	ctx.fillStyle="white";
+}
+
+
+createmeteor();
+createmeteor();
+createmeteor();
+createmeteor();
+createmeteor();
+createmeteor();
+createmeteor();
+createmeteor();
+
+updateEnitity=function(p)
+{
+	drawmeteor(p);
+	entityPosition(p);
+}
+
+var bulletList={};
+
+bullet=function(id,x,speedx,y,speedy,height,width,photo)
+{
+	var e3={
+				 x:x,
+				 speedx:speedx,
+				 y:y,
+				 speedy:speedy,
+				 name:'E',
+				 id:id,
+				 height:height,
+				 width:width,
+				 timer:0,
+			 
+			};
+	bulletList[id]=e3;
+}
+
+createbullet=function()
+{
+	var x=p.x+37;
+	var speedx=0;
+	var y=p.y;
+	var speedy=-10;
+	var name=Math.random();
+	var id=Math.random();
+	var height=20;
+	var width=2;
+	bullet(id,x,speedx,y,speedy,height,width);
+}
+
+drawbullet=function(p)
+{
+	ctx.fillStyle="red";
+	ctx.fillRect(p.x+34,p.y-10,p.width+3,p.height);
+}
+updateEnititybullet=function(p)
+{
+	drawbullet(p);
+	entityPositionbullet(p);
+}
+
+entityPositionbullet=function(p)
+{
+	 p.x=p.x+p.speedx*5;
+	 p.y=p.y+p.speedy*5;
+}
+
+entityPosition=function(p)
+{
+	 p.x=p.x+p.speedx;
+	 p.y=p.y+p.speedy;
+	 
+	 if(p.x>1250 || p.x<0)
+	 {
+	    p.speedx=-p.speedx;
+	 }
+	 if(p.y>580 || p.y<0)
+	 {
+	    p.speedy=-p.speedy;
+	 }
+}
+
+
+distanceBetweenPoints=function(e1,e2)
+{
+	var vx=e1.x-e2.x;
+	var vy=e1.y-e2.y;
+	return Math.sqrt(vx*vx+vy*vy);
+}
+
+testforcollision=function(e1,e2)
+{
+	var d=distanceBetweenPoints(e1,e2);
+	return d<50;
+}
+    
+createplayagain=function()
+{
+        document.getElementById("playagain").style.display="block"; 
+        document.getElementById("ctx").style.cursor="pointer";
+}
+  
+var bg=new Image();
+bg.src="mygalaxy.png";
+
+function backimgground()
+{
+        
+        this.x=0,
+        this.y=-1300,
+        this.w=bg.width,
+        this.h=bg.height;
+        this.render=function()
+        {
+            ctx.drawImage(bg,0,this.y+=10);  
+            if(this.y==0)
+            {
+                this.y=-1300;
+            }   
+        }
+}
+
+var backimg=new backimgground();
+ 
+update=function ()
+{
+	ctx.clearRect(0,0,1300,580);
+	backimg.render();
+	score++;
+	framecount++;
+	if(framecount%100==0)
+	   createmeteor(); 
+
+	drawplayer(p);
+
+	for(var index in bulletList)
+	{        
+	        updateEnititybullet(bulletList[index]);   
+	        bulletList[index].timer++;
+
+	        if(bulletList[index].timer>=25)
+	        {
+	            delete bulletList[index];
+	            continue;
+	        }
+	        
+	        for(var index2 in enemyList)
+	        {
+	                var checkCollisionWithBullet=testforcollision(bulletList[index],enemyList[index2]);
+	                if(checkCollisionWithBullet && enemyList[index2].radius<=30)
+	                {   
+	                        enemydestroyed++;
+	                        score+=100;
+	                        enemyList[index2].radius-=5; 
+	                        delete bulletList[index];
+	                        delete enemyList[index2];
+	                        break;
+	                }
+	                if(checkCollisionWithBullet && enemyList[index2].radius>30)
+	                {
+	                    enemyList[index2].radius-=10;
+	                    smallexplodesound.play();
+	                     
+	                }
+	        }   
+	}
+
+	for(var index in enemyList)
+	{
+
+		updateEnitity(enemyList[index]);
+
+		var isColliding=testforcollision(p,enemyList[index]);
+		if(isColliding)
+		{
+			p.lives=p.lives-1;
+
+			if(p.lives<=0)
+			{
+		    
+				enemyList={};
+				
+				var timesurvived=Date.now()-starttime;
+				ctx.fillStyle="black";
+				
+				ctx.fillStyle="red";
+				ctx.font="40px Georgia";
+				ctx.fillText("Game Over",570,300);
+				ctx.fillStyle="white";
+				ctx.fillText("Score: "+score,550,350);
+				ctx.fillText("Meteors Destroyed: "+enemydestroyed,450,390);
+				createplayagain();
+				starttime=Date.now();
+
+				clearInterval(timeout);
+				ctx.fillStyle="black";
+				ctx.restore();
+			}
+		}	
+	}
+	if(p.lives>0)
+	{
+		ctx.fillStyle="white";
+		ctx.fillText(p.lives+" Lives",600,570);
+		ctx.fillText("Score: "+score,550,50);
+	}
+}
+
+var timeout=setInterval(update,30);
+
+</script>
