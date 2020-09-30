@@ -48,7 +48,7 @@ var framecount=0;
 var framecounte2=0;
 var enemydestroyed=0;
 var rotateangle=0;
-const TURN_SPEED = 360;
+const TURN_SPEED = 360/2;
 var ctx=document.getElementById('ctx').getContext('2d');
 ctx.font="40px Georgia";
 ctx.fillStyle="white";
@@ -83,7 +83,7 @@ drawplayer=function(p)
 	ctx.save();
 	ctx.drawImage(pimage,p.x,p.y,150,120);
 	ctx.restore();
-	ctx.fillStyle="white";	 
+	ctx.fillStyle="red";	 
 }
 
 document.addEventListener("keydown", keyDown);
